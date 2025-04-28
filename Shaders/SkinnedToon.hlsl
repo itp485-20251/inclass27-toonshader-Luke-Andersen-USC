@@ -47,16 +47,18 @@ VOut VS(VIn vIn)
 
 float4 PS(VOut pIn) : SV_TARGET
 {
-     float4 diffuseTex = DiffuseTexture.Sample(DefaultSampler, pIn.uv);
+    float4 diffuseTex = DiffuseTexture.Sample(DefaultSampler, pIn.uv);
 
-     float3 n = normalize(pIn.normal);
+    float3 n = normalize(pIn.normal);
+    
+    float d = dot(n, c_lightDir);
+    d = 0.5f * d + 0.5f;
+    float toon = 0.5f * smoothstep(0.66f, 0.67f, d) + 0.5f;
+    
+    float3 viewDir = normalize(c_cameraPosition - float3(pIn.position.xyz));
+    
+    float outline = smoothstep(0.2, 0.21, dot(n, viewDir));
+    float3 color = outline * toon;
 
-     //TODO change this from a half-lambert into a toon shader
-     float d = dot(n, c_lightDir);
-     d = 0.5f * d + 0.5f;
-     d = d * d;
-
-     float4 light = float4(d * c_lightColor, 1.0f);
-
-     return diffuseTex * light;
+    return diffuseTex * float4(color, 1.0f);
 }
